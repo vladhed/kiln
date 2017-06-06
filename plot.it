@@ -1,0 +1,9 @@
+#!/usr/bin/gnuplot -persist
+set xdata time
+#set yrange [0:300]
+set timefmt "%H:%M:%S"
+set pointsize 1
+set terminal png enhanced
+set output "/var/www/html/cgi-bin/output.png"
+plot "temps" using 1:2 with linespoints
+
