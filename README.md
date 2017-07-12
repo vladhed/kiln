@@ -16,3 +16,11 @@ cgi-bin/temp.py is a web page that displays the current temperature and
 a chart of the temperature over time since kilncon was started.
 
 plot.it is a gnuplot script for printing the chart.
+
+Copy plot.it to /var/www/html
+Copy cgi-bin/temp.py to /var/www/html/cgi-bin
+symlink /var/www/html/output.png to /var/www/html/cgi-bin/output.png
+cd /var/www/html
+<git>/rectemp2.py -l 1100 -f temps
+
+from web browser, http://<rpi>/cgi-bin/temp.py

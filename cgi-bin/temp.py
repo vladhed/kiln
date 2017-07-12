@@ -13,10 +13,10 @@ print "Content-type:text/html\r\n\r\n"
 print '<html>'
 print '<head>'
 print '<meta http-equiv="refresh" content="5">'
-print '<title>Hello Word - First CGI Program</title>'
+print '<title>Kiln Monitor</title>'
 print '</head>'
 print '<body>'
-print '<h2>Temperature is %0.1f degF</h2>' % thermoTempF
+print '<h2>Temperature is %0.1f degC</h2>' % thermoTempC
 print '<img src="output.png">'
 print '</body>'
 print '</html>'
