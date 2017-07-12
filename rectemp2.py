@@ -30,14 +30,26 @@ max = max31856.max31856(csPin,misoPin,mosiPin,clkPin)
 file = options.filename
 fo = open(file,"a",0)
 
+last1=0
+last2=0
+
 while curr < limit:
     curr = max.readThermocoupleTemp()
-    currF = (curr * 9.0/5.0) + 32
 
+    if last1 == 0:
+      slope = (curr - last2)*120
+    else:
+      slope = (curr - last1)*60
+    if slope > 1000:
+      slope=100
     timestr = datetime.now().strftime("%H:%M:%S")
-    print timestr+" "+str(curr)
+    print timestr+" "+str(curr)+" "+str(slope)
     fo.write(timestr+" "+str(curr)+"\n")
-    os.system("./plot.it")
+    cmd = "gnuplot -e \"set title 'C/hr = " + str(slope) + "';call 'plot.it2' \""
+    os.system(cmd)
+
+    last1 = last2
+    last2 = curr
     time.sleep(30)
     if curr >= limit:
         print "Whaaaa?"

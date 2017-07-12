@@ -1,9 +1,12 @@
 #!/usr/bin/gnuplot -persist
+set title "Kiln Temperature in C" font ",14" textcolor rgbcolor "royalblue"
 set xdata time
-#set yrange [0:300]
 set timefmt "%H:%M:%S"
+set format x "%H:%M"
+#set xtics offset 0,-1 rotate by 90 center
+set xtics rotate by 45 right
+#set yrange [0:500]
 set pointsize 1
-set terminal png enhanced
-set output "/var/www/html/cgi-bin/output.png"
-plot "temps" using 1:2 with linespoints
-
+set terminal png enhanced 
+set output "output.png"
+plot "temps" using 1:2 with lines title ""
