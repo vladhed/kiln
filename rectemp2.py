@@ -5,53 +5,78 @@ import time
 import random
 import os
 import max31856
+from max31856 import FaultError
 from optparse import OptionParser
 from datetime import datetime
 
-keep = 0
-curr = 0
+temphistory = [1, 0, 0, 0, 0]
+secshistory = [1, 0, 0, 0, 0]
 
-parser = OptionParser()
+# averaging slope function
+def slopecalc(newtemp,secs):
+  global temphistory
+  global secshistory
 
-parser.add_option('-l','--limit',dest="templimit", help="Max temperature",metavar="int")
-parser.add_option('-f','--file',dest="filename", help="Output for data",metavar="file")
-options,remainder = parser.parse_args()
+  #initial conditions
+  i = 4
+  while temphistory[i] == 0: 
+    i=i-1
 
-print options.templimit
-limit = int(options.templimit)
-print("shutoff at %d" % limit)
+  if temphistory[i] != 1:
+    slope = (newtemp - temphistory[i])*(3600/(secs-secshistory[i]))
 
-csPin = 8
-misoPin = 9
-mosiPin = 10
-clkPin = 11
-max = max31856.max31856(csPin,misoPin,mosiPin,clkPin)
+    # shift values
+    for i in range(0,3):
+      temphistory[4-i]=temphistory[3-i]
+      secshistory[4-i]=secshistory[3-i]
+  else:
+    # first call, make up a value
+    slope = 100
 
-file = options.filename
-fo = open(file,"a",0)
+  temphistory[0] = newtemp
+  secshistory[0] = secs
 
-last1=0
-last2=0
+  return slope
 
-while curr < limit:
-    curr = max.readThermocoupleTemp()
 
-    if last1 == 0:
-      slope = (curr - last2)*120
-    else:
-      slope = (curr - last1)*60
-    if slope > 1000:
-      slope=100
-    timestr = datetime.now().strftime("%H:%M:%S")
-    print timestr+" "+str(curr)+" "+str(slope)
-    fo.write(timestr+" "+str(curr)+"\n")
-    cmd = "gnuplot -e \"set title 'C/hr = " + str(slope) + "';call 'plot.it2' \""
-    os.system(cmd)
+if __name__ == "__main__":
 
-    last1 = last2
-    last2 = curr
+  curr = 0
+
+  parser = OptionParser()
+
+  parser.add_option('-l','--limit',dest="templimit", help="Max temperature",metavar="int")
+  #parser.add_option('-f','--file',dest="filename", help="Output for data",metavar="file")
+  options,remainder = parser.parse_args()
+
+  print options.templimit
+  limit = int(options.templimit)
+  print("shutoff at %d" % limit)
+
+  csPin = 8
+  misoPin = 9
+  mosiPin = 10
+  clkPin = 11
+  max = max31856.max31856(csPin,misoPin,mosiPin,clkPin)
+
+  #file = options.filename
+  file = "/var/www/html/temps"
+  fo = open(file,"a",0)
+
+  while curr < limit:
+    try:
+      curr = max.readThermocoupleTemp()
+      secs = time.time()
+
+      slope = slopecalc(curr,secs)
+      timestr = datetime.now().strftime("%H:%M:%S")
+      print timestr+" "+str(curr)+" "+str(slope)
+      fo.write(timestr+" "+str(curr)+"\n")
+      cmd = "gnuplot -e \"set title 'C/hr = " + str(slope) + "';call 'plot.it2' \""
+      os.system(cmd)
+    except FaultError as fault:
+      print fault
+      
     time.sleep(30)
-    if curr >= limit:
-        print "Whaaaa?"
 
-fo.close()
+  fo.close()
