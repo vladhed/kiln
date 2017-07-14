@@ -18,17 +18,19 @@ def slopecalc(newtemp,secs):
   global secshistory
 
   #initial conditions
+  delta=0
   i = 4
   while temphistory[i] == 0: 
     i=i-1
 
   if temphistory[i] != 1:
-    slope = (newtemp - temphistory[i])*(3600/(secs-secshistory[i]))
+    delta = secs - secshistory[i]
+    slope = (newtemp - temphistory[i])*(3600/delta)
 
     # shift values
-    for i in range(0,3):
-      temphistory[4-i]=temphistory[3-i]
-      secshistory[4-i]=secshistory[3-i]
+    for j in range(0,4):
+      temphistory[4-j]=temphistory[3-j]
+      secshistory[4-j]=secshistory[3-j]
   else:
     # first call, make up a value
     slope = 100
@@ -36,7 +38,7 @@ def slopecalc(newtemp,secs):
   temphistory[0] = newtemp
   secshistory[0] = secs
 
-  return slope
+  return slope,delta
 
 
 if __name__ == "__main__":
@@ -68,9 +70,9 @@ if __name__ == "__main__":
       curr = max.readThermocoupleTemp()
       secs = time.time()
 
-      slope = slopecalc(curr,secs)
+      slope,delta = slopecalc(curr,secs)
       timestr = datetime.now().strftime("%H:%M:%S")
-      print timestr+" "+str(curr)+" "+str(slope)
+      print timestr+" "+str(curr)+" "+str(slope)+" "+str(delta)
       fo.write(timestr+" "+str(curr)+"\n")
       cmd = "gnuplot -e \"set title 'C/hr = " + str(slope) + "';call 'plot.it2' \""
       os.system(cmd)
